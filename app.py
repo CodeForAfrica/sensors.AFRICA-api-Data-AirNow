@@ -19,9 +19,14 @@ def index():
     app.log.debug("run")
     return run(app)
 
-# Automatically runs every 10 minutes
+# Automatically runs every 1 hour
 @app.schedule(Rate(int(SCHEDULE_RATE), unit=Rate.HOURS))
 def periodic_task(event):
     app.log.debug(event.to_dict())
     return run(app)
 
+# Automatically runs every 1 hour
+@app.schedule(Rate(int(HISTORY_SCHEDULE_RATE), unit=Rate.HOURS))
+def history_task(event):
+    app.log.debug(event.to_dict())
+    return history(app)
