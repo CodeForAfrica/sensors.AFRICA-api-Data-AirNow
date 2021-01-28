@@ -26,7 +26,7 @@ def get_nodes_sensor_data(day):
 def run(app):
     nodes = get_sensors_africa_nodes()
     nodes = [ node.get("uid") for node in nodes ]
-  
+
     s3client = boto3.client("s3", region_name="eu-west-1")
     try:
         response = s3client.get_object(Bucket=S3_BUCKET_NAME, Key=S3_OBJECT_KEY)
@@ -62,9 +62,9 @@ def run(app):
                         "timestamp": sensor_data["UTC"]
                         }, sensor_data["FullAQSCode"], "-")
                 
-                #update pickle variable               
-            node_last_entry_dict[sensor_data["FullAQSCode"]] = sensor_data["UTC"]
-            s3client.put_object(Body=pickle.dumps(node_last_entry_dict), Bucket=S3_BUCKET_NAME, Key=S3_OBJECT_KEY)
+        #update pickle variable               
+        node_last_entry_dict[sensor_data["FullAQSCode"]] = sensor_data["UTC"]
+        s3client.put_object(Body=pickle.dumps(node_last_entry_dict), Bucket=S3_BUCKET_NAME, Key=S3_OBJECT_KEY)
    
 
 def history(app):
@@ -80,32 +80,30 @@ def history(app):
         last_date_dict = dict()
 
 
-    day = strftime("%Y-%m-%d", localtime())
+    if not "last_date" in last_date_dict:
+            last_date_dict["last_date"] = LAST_DATA_RECORDED_ON
 
-    data = get_nodes_sensor_data(today)
+    day = (dt.strptime(last_date_dict["last_date"], "%Y-%m-%d") - timedelta(days=1)).strftime('%Y-%m-%d') 
+
+    data = get_nodes_sensor_data(day)
+
     africa_sensor_data = [ d for d in data if d["FullAQSCode"] in nodes ]
 
     for sensor_data in africa_sensor_data:
-        if not sensor_data["FullAQSCode"] in node_last_entry_dict:
-                node_last_entry_dict[sensor_data["FullAQSCode"]] = "2000-01-01T00:00"
-        
-        last_entry = node_last_entry_dict[sensor_data["FullAQSCode"]]
+        value_type = "P2"
+        if sensor_data["Parameter"] != "PM2.5":
+            value_type = "P1"
 
-        if dt.strptime(sensor_data["UTC"], "%Y-%m-%dT%H:%M") > dt.strptime(last_entry, "%Y-%m-%dT%H:%M"):
-            value_type = "P2"
-            if sensor_data["Parameter"] != "PM2.5":
-                value_type = "P1"
+        sensor_data_values = [{
+                        "value": sensor_data["Value"],
+                        "value_type": value_type
+                    }]
 
-            sensor_data_values = [{
-                            "value": sensor_data["Value"],
-                            "value_type": value_type
-                        }]
-
-            post_sensor_data({ 
-                        "sensordatavalues": sensor_data_values, 
-                        "timestamp": sensor_data["UTC"]
-                        }, sensor_data["FullAQSCode"], "-")
-                
-                #update pickle variable               
-            node_last_entry_dict[sensor_data["FullAQSCode"]] = sensor_data["UTC"]
-            s3client.put_object(Body=pickle.dumps(node_last_entry_dict), Bucket=S3_BUCKET_NAME, Key=S3_OBJECT_KEY)
+        post_sensor_data({ 
+                    "sensordatavalues": sensor_data_values, 
+                    "timestamp": sensor_data["UTC"]
+                    }, sensor_data["FullAQSCode"], "-")
+            
+    #update pickle variable               
+    last_date_dict["last_date"] = day
+    s3client.put_object(Body=pickle.dumps(last_date_dict), Bucket=S3_BUCKET_NAME, Key=S3_HISTORY_OBJECT_KEY)

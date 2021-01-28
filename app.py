@@ -2,7 +2,7 @@ import sentry_sdk
 
 from chalice import Chalice, Rate
 from chalicelib.service import run, history
-from chalicelib.settings import SCHEDULE_RATE, SENTRY_DSN
+from chalicelib.settings import HISTORY_SCHEDULE_RATE, SCHEDULE_RATE, SENTRY_DSN
 
 from sentry_sdk.integrations.chalice import ChaliceIntegration
 
@@ -14,10 +14,10 @@ sentry_sdk.init(
 
 app = Chalice(app_name='sensors-africa-airnow')
 
-@app.route("/")
-def index():
-    app.log.debug("run")
-    return run(app)
+# @app.route("/")
+# def index():
+#     app.log.debug("run")
+#     return run(app)
 
 # Automatically runs every 1 hour
 @app.schedule(Rate(int(SCHEDULE_RATE), unit=Rate.HOURS))
