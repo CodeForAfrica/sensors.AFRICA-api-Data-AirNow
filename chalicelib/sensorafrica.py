@@ -16,7 +16,7 @@ def post_sensor_data(data, node_uid, pin):
     raise Exception(response.text)
     
 def get_sensors_africa_nodes():
-    response = requests.get(f"{SENSORS_AFRICA_API}/v1/node/",
+    response = requests.get(f"{SENSORS_AFRICA_API}/v1/node/?page_size=30",
     headers={"Authorization": f"Token {SENSORS_AFRICA_AUTH_TOKEN}"})
     if response.ok:
         return response.json()["results"]
