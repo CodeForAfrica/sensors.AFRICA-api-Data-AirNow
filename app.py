@@ -26,7 +26,7 @@ def periodic_task(event):
     return run(app)
 
 # Automatically runs every 1 hour
-@app.schedule(Rate(int(HISTORY_SCHEDULE_RATE), unit=Rate.HOURS))
+@app.schedule(Rate(int(HISTORY_SCHEDULE_RATE), unit=Rate.MINUTES))
 def history_task(event):
     app.log.debug(event.to_dict())
     return history(app)
