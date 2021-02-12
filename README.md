@@ -1,4 +1,4 @@
-# Airqo lambda function
+# sensors.AFRICA Data from AirNow
 
 Serverless Application built using Chalice framework. It pulls sensors data from [AirNow](https://www.airnowapi.org/) platform, and uploads them to [Sensors.Africa](https://api.sensors.africa/docs/).
 
